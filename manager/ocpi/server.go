@@ -7,15 +7,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"regexp"
+	"strconv"
+	"time"
+
 	"github.com/go-chi/render"
 	"github.com/thoughtworks/maeve-csms/manager/handlers"
 	"github.com/thoughtworks/maeve-csms/manager/ocpp/ocpp16"
 	"golang.org/x/exp/slog"
 	"k8s.io/utils/clock"
-	"net/http"
-	"regexp"
-	"strconv"
-	"time"
 )
 
 type Server struct {
@@ -244,6 +245,43 @@ func (s *Server) PostCancelReservation(w http.ResponseWriter, r *http.Request, p
 
 func (s *Server) PostReserveNow(w http.ResponseWriter, r *http.Request, params PostReserveNowParams) {
 	w.WriteHeader(http.StatusNotImplemented)
+	reserveNow := new(ReserveNow)
+	if err := render.Bind(r, reserveNow); err != nil {
+		_ = render.Render(w, r, ErrInvalidRequest(err))
+		return
+	}
+	var chargeStationId string
+	if reserveNow.EvseUid == nil {
+		_ = render.Render(w, r, ErrInvalidRequest(errors.New("CSMS does not support reservation commands without evse_uid")))
+		return
+	} else {
+		extractedChargeStationId, err := extractChargeStationId(*reserveNow.EvseUid)
+		if err != nil {
+			slog.Error("error extracting charge station id", "err", err)
+			_ = render.Render(w, r, ErrInvalidRequest(err))
+			return
+		}
+		chargeStationId = extractedChargeStationId
+	}
+	err := s.ocpi.SetToken(context.Background(), reserveNow.Token)
+	if err != nil {
+		_ = render.Render(w, r, ErrInvalidRequest(err))
+		return
+	}
+	// TODO: Build payload request
+	ocppReservation := ocpp16.Reservation{ReservationId: 0, ConnectorId: 0, ExpiryDate: "", IdTag: ""}
+	err = s.v16CallMaker.Send(context.Background(), chargeStationId, &ocppReservation)
+	commandResponse := CommandResponse{Result: CommandResponseResultACCEPTED}
+	if err != nil {
+		slog.Error("error sending mqtt message", "err", err)
+		commandResponse = CommandResponse{Result: CommandResponseResultREJECTED}
+	}
+	_ = render.Render(w, r, OcpiResponseCommandResponse{
+		StatusCode:    StatusSuccess,
+		StatusMessage: &StatusSuccessMessage,
+		Timestamp:     s.clock.Now().Format(time.RFC3339),
+		Data:          &commandResponse,
+	})
 }
 
 func (s *Server) PostStartSession(w http.ResponseWriter, r *http.Request, params PostStartSessionParams) {
