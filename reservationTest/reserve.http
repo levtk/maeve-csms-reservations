@@ -1,0 +1,10 @@
+curl -i -X POST http://localhost:9411/ocpi/receiver/2.2/commands/RESERVE_NOW \
+-H 'Content-Type: application/json' \
+-H "Authorization: Bearer some.eyJlbWFpbCI6InRlc3RAbWFpbC5jb20iLCJzdWIiOiJmNDdhYzEwYi01OGNjLTQzNzItYTU2Ny0wZTAyYjJjM2Q0NzkifQ.some" \
+-H "X-Request-ID: bla" \
+-H "X-Correlation-ID: bla" \
+-H "OCPI-from-country-code: DE" \
+-H "OCPI-from-party-id: TWK" \
+-H "OCPI-to-country-code: DE" \
+-H "OCPI-to-party-id: EZE" \
+-d @request.json

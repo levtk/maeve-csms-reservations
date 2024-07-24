@@ -244,7 +244,6 @@ func (s *Server) PostCancelReservation(w http.ResponseWriter, r *http.Request, p
 }
 
 func (s *Server) PostReserveNow(w http.ResponseWriter, r *http.Request, params PostReserveNowParams) {
-	w.WriteHeader(http.StatusNotImplemented)
 	reserveNow := new(ReserveNow)
 	if err := render.Bind(r, reserveNow); err != nil {
 		_ = render.Render(w, r, ErrInvalidRequest(err))
@@ -263,18 +262,16 @@ func (s *Server) PostReserveNow(w http.ResponseWriter, r *http.Request, params P
 		}
 		chargeStationId = extractedChargeStationId
 	}
-	err := s.ocpi.SetToken(context.Background(), reserveNow.Token)
-	if err != nil {
-		_ = render.Render(w, r, ErrInvalidRequest(err))
-		return
-	}
-	// TODO: Build payload request
-	ocppReservation := ocpp16.Reservation{ReservationId: 0, ConnectorId: 0, ExpiryDate: "", IdTag: ""}
-	err = s.v16CallMaker.Send(context.Background(), chargeStationId, &ocppReservation)
+	reserveId, _ := strconv.Atoi(reserveNow.ReservationId)
+	ocppReservation := ocpp16.Reservation{ReservationId: reserveId, ConnectorId: 0, ExpiryDate: reserveNow.ExpiryDate, IdTag: reserveNow.Token.Uid}
+	slog.Info("Send reservation command to everest")
+	err := s.v16CallMaker.Send(context.Background(), chargeStationId, &ocppReservation)
 	commandResponse := CommandResponse{Result: CommandResponseResultACCEPTED}
 	if err != nil {
 		slog.Error("error sending mqtt message", "err", err)
 		commandResponse = CommandResponse{Result: CommandResponseResultREJECTED}
+	} else {
+		slog.Info("No error from reservation command")
 	}
 	_ = render.Render(w, r, OcpiResponseCommandResponse{
 		StatusCode:    StatusSuccess,
