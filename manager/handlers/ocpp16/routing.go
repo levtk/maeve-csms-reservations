@@ -271,6 +271,13 @@ func NewRouter(emitter transport.Emitter,
 				ResponseSchema: "ocpp16/TriggerMessageResponse.json",
 				Handler:        TriggerMessageResultHandler{},
 			},
+			"ReserveNow": {
+				NewRequest:     func() ocpp.Request { return new(ocpp16.Reservation) },
+				NewResponse:    func() ocpp.Response { return new(ocpp16.ReservationResponse) },
+				RequestSchema:  "ocpp16/ReserveNow.json",
+				ResponseSchema: "ocpp16/ReserveNowResponse.json",
+				Handler:        ReservationResultHandler{},
+			},
 		},
 	}
 }

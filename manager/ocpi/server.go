@@ -263,7 +263,7 @@ func (s *Server) PostReserveNow(w http.ResponseWriter, r *http.Request, params P
 		chargeStationId = extractedChargeStationId
 	}
 	reserveId, _ := strconv.Atoi(reserveNow.ReservationId)
-	ocppReservation := ocpp16.Reservation{ReservationId: reserveId, ConnectorId: 0, ExpiryDate: reserveNow.ExpiryDate, IdTag: reserveNow.Token.Uid}
+	ocppReservation := ocpp16.Reservation{ReservationId: reserveId, ConnectorId: 1, ExpiryDate: reserveNow.ExpiryDate, IdTag: reserveNow.Token.Uid}
 	slog.Info("Send reservation command to everest")
 	err := s.v16CallMaker.Send(context.Background(), chargeStationId, &ocppReservation)
 	commandResponse := CommandResponse{Result: CommandResponseResultACCEPTED}
