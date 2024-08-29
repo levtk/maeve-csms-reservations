@@ -6,6 +6,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/fs"
+	"reflect"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/thoughtworks/maeve-csms/manager/handlers"
 	handlersHasToBe "github.com/thoughtworks/maeve-csms/manager/handlers/has2be"
@@ -17,10 +21,7 @@ import (
 	"github.com/thoughtworks/maeve-csms/manager/services"
 	"github.com/thoughtworks/maeve-csms/manager/store"
 	"github.com/thoughtworks/maeve-csms/manager/transport"
-	"io/fs"
 	"k8s.io/utils/clock"
-	"reflect"
-	"time"
 )
 
 func NewRouter(emitter transport.Emitter,
@@ -270,6 +271,13 @@ func NewRouter(emitter transport.Emitter,
 				ResponseSchema: "ocpp16/TriggerMessageResponse.json",
 				Handler:        TriggerMessageResultHandler{},
 			},
+			"ReserveNow": {
+				NewRequest:     func() ocpp.Request { return new(ocpp16.Reservation) },
+				NewResponse:    func() ocpp.Response { return new(ocpp16.ReservationResponse) },
+				RequestSchema:  "ocpp16/ReserveNow.json",
+				ResponseSchema: "ocpp16/ReserveNowResponse.json",
+				Handler:        ReservationResultHandler{},
+			},
 		},
 	}
 }
@@ -282,6 +290,7 @@ func NewCallMaker(e transport.Emitter) *handlers.OcppCallMaker {
 			reflect.TypeOf(&ocpp16.ChangeConfigurationJson{}):    "ChangeConfiguration",
 			reflect.TypeOf(&ocpp16.TriggerMessageJson{}):         "TriggerMessage",
 			reflect.TypeOf(&ocpp16.RemoteStartTransactionJson{}): "RemoteStartTransaction",
+			reflect.TypeOf(&ocpp16.Reservation{}):                "ReserveNow",
 		},
 	}
 }

@@ -1,0 +1,18 @@
+{
+    "evse_uid":"GBTWKEcs001",
+    "expiry_date":"2024-07-25T09:35:00.000Z",
+    "reservation_id":"1",
+    "response_url":"http://localhost",
+    "location_id":"bla",
+    "token": {
+        "uid" : "DEADBEEF",
+        "contract_id" : "123",
+        "country_code": "DE",
+        "issuer": "bla",
+        "last_updated" : "2024-07-23T22:45:00",
+        "party_id" : "bla",
+        "type" : "RFID",
+        "valid" : true ,
+        "whitelist" : "ALLOWED"
+    }
+}

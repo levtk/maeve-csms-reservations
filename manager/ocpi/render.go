@@ -31,3 +31,7 @@ func (Token) Bind(r *http.Request) error {
 func (StartSession) Bind(r *http.Request) error {
 	return nil
 }
+
+func (ReserveNow) Bind(r *http.Request) error {
+	return nil
+}
